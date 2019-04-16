@@ -104,17 +104,23 @@ namespace WebApp_Storage_DotNet.Controllers
         {
             try
             {
+                // full path to file in temp location
+                var path = Path.GetTempPath();
                 HttpFileCollectionBase files = Request.Files;
                 int fileCount = files.Count;
-
                 if (fileCount > 0)
                 {
                     for (int i = 0; i < fileCount; i++)
                     {
-                        CloudBlockBlob blob = blobContainer.GetBlockBlobReference(GetRandomBlobName(files[i].FileName));
-                        await blob.UploadFromFileAsync(files[i].FileName, FileMode.Open);
+                        var file = files[i];
+                        var randomName = GetRandomBlobName(file.FileName);
+                        var filePathName = path + randomName;
+                        file.SaveAs(filePathName);
+                        CloudBlockBlob blob = blobContainer.GetBlockBlobReference(randomName);
+                        await blob.UploadFromFileAsync(filePathName, FileMode.Open);
                     }
                 }
+                
                 return RedirectToAction("Index");
             }
             catch (Exception ex)
